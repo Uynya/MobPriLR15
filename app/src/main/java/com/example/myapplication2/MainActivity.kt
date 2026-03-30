@@ -23,25 +23,81 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import com.example.myapplication2.data.repository.InMemoryTaskRepositoryImpl
-import com.example.myapplication2.domain.usecase.AddTaskUseCase
-import com.example.myapplication2.domain.usecase.GetTasksUseCase
-import com.example.myapplication2.domain.model.Task as DomainTask
-import com.example.myapplication2.presentation.viewmodel.TasksViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.myapplication2.domain.model.Task
 import com.example.myapplication2.presentation.tasks.TasksUiState
+import com.example.myapplication2.presentation.viewmodel.TasksViewModel
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            val viewModel: TasksViewModel = hiltViewModel()
+            val themeManager = remember { ThemeManagerImpl() }
+            val uiState by viewModel.uiState.collectAsState()
+
+            var showDialog by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                viewModel.loadTasks()
+            }
+
+            MyApplicationTheme(themeManager = themeManager) {
+                Scaffold(
+                    floatingActionButton = {
+                        FloatingActionButton5(onAddClick = { showDialog = true })
+                    },
+                    topBar = {
+                        NotesTopAppBar(
+                            title = "Заметки",
+                            onThemeToggle = {
+                                val newMode = when (themeManager.getThemeMode()) {
+                                    ThemeMode.System -> ThemeMode.Light
+                                    ThemeMode.Light -> ThemeMode.Dark
+                                    ThemeMode.Dark -> ThemeMode.System
+                                }
+                                themeManager.setThemeMode(newMode)
+                            }
+                        )
+                    },
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+                    NotesScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        uiState = uiState,
+                        onTaskClick = { viewModel.onTaskClick(it) }
+                    )
+                }
+
+                if (showDialog) {
+                    AddTaskDialog(
+                        onDismiss = { showDialog = false },
+                        onConfirm = { title, description ->
+                            viewModel.addTask(title, description)
+                            showDialog = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ============================================
+// Compose-компоненты (без изменений)
+// ============================================
 
 @Composable
 fun TaskCard(
-    task: DomainTask,
+    task: Task,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -138,7 +194,6 @@ fun NotesTopAppBar(
     )
 }
 
-
 interface ThemeManager {
     fun getThemeMode(): ThemeMode
     fun setThemeMode(mode: ThemeMode)
@@ -227,65 +282,6 @@ fun NotesScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            val repository = remember { InMemoryTaskRepositoryImpl() }
-            val getTasksUseCase = remember { GetTasksUseCase(repository) }
-            val addTaskUseCase = remember { AddTaskUseCase(repository) }
-            val viewModel = remember { TasksViewModel(getTasksUseCase, addTaskUseCase) }
-            val themeManager = remember { ThemeManagerImpl() }
-            val uiState by viewModel.uiState.collectAsState()
-
-            var showDialog by remember { mutableStateOf(false) }
-
-            LaunchedEffect(Unit) {
-                viewModel.loadTasks()
-            }
-
-            MyApplicationTheme(themeManager = themeManager) {
-                Scaffold(
-                    floatingActionButton = {
-                        FloatingActionButton5(onAddClick = { showDialog = true })
-                    },
-                    topBar = {
-                        NotesTopAppBar(
-                            title = "Заметки",
-                            onThemeToggle = {
-                                val newMode = when (themeManager.getThemeMode()) {
-                                    ThemeMode.System -> ThemeMode.Light
-                                    ThemeMode.Light -> ThemeMode.Dark
-                                    ThemeMode.Dark -> ThemeMode.System
-                                }
-                                themeManager.setThemeMode(newMode)
-                            }
-                        )
-                    },
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-                    NotesScreen(
-                        modifier = Modifier.padding(innerPadding),
-                        uiState = uiState,
-                        onTaskClick = { viewModel.onTaskClick(it) }
-                    )
-                }
-
-                if (showDialog) {
-                    AddTaskDialog(
-                        onDismiss = { showDialog = false },
-                        onConfirm = { title, description ->
-                            viewModel.addTask(title, description)
-                            showDialog = false
-                        }
-                    )
                 }
             }
         }

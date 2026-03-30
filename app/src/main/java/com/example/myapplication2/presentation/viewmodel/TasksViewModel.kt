@@ -6,13 +6,16 @@ import com.example.myapplication2.domain.model.Task
 import com.example.myapplication2.domain.usecase.AddTaskUseCase
 import com.example.myapplication2.domain.usecase.GetTasksUseCase
 import com.example.myapplication2.presentation.tasks.TasksUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TasksViewModel(
+@HiltViewModel
+class TasksViewModel @Inject constructor(
     private val getTasksUseCase: GetTasksUseCase,
     private val addTaskUseCase: AddTaskUseCase
 ) : ViewModel() {
@@ -30,7 +33,7 @@ class TasksViewModel(
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isLoading = false, error = e.message ?: "Unknown error")
+                    it.copy(isLoading = false, error = e.message ?: "Неизвестная ошибка")
                 }
             }
         }
@@ -51,9 +54,8 @@ class TasksViewModel(
         }
     }
 
-
     fun onTaskClick(task: Task) {
-
+        // Обработка клика
     }
 
     fun clearError() {
