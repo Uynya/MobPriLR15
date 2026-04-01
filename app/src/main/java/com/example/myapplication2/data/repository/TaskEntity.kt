@@ -1,7 +1,14 @@
 package com.example.myapplication2.data.repository
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "tasks")
 data class TaskEntity(
-    val id: String,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val title: String,
-    val description: String
+    val description: String,
+    val isCompleted: Boolean = false,
+    val createdAt: Long = System.currentTimeMillis()
 )

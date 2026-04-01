@@ -1,5 +1,6 @@
 package com.example.myapplication2.di
 
+import com.example.myapplication2.di.qualifiers.IoDispatcher
 import com.example.myapplication2.domain.repository.TaskRepository
 import com.example.myapplication2.domain.usecase.AddTaskUseCase
 import com.example.myapplication2.domain.usecase.GetTasksUseCase
@@ -7,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Singleton
 
 @Module
@@ -16,16 +18,18 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideGetTasksUseCase(
-        repository: TaskRepository
+        repository: TaskRepository,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
     ): GetTasksUseCase {
-        return GetTasksUseCase(repository)
+        return GetTasksUseCase(repository, ioDispatcher)
     }
 
     @Provides
     @Singleton
     fun provideAddTaskUseCase(
-        repository: TaskRepository
+        repository: TaskRepository,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher
     ): AddTaskUseCase {
-        return AddTaskUseCase(repository)
+        return AddTaskUseCase(repository, ioDispatcher)
     }
 }

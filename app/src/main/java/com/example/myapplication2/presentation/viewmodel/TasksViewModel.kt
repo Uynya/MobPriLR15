@@ -2,11 +2,13 @@ package com.example.myapplication2.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication2.di.qualifiers.IoDispatcher
 import com.example.myapplication2.domain.model.Task
 import com.example.myapplication2.domain.usecase.AddTaskUseCase
 import com.example.myapplication2.domain.usecase.GetTasksUseCase
 import com.example.myapplication2.presentation.tasks.TasksUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TasksViewModel @Inject constructor(
     private val getTasksUseCase: GetTasksUseCase,
-    private val addTaskUseCase: AddTaskUseCase
+    private val addTaskUseCase: AddTaskUseCase,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TasksUiState())
@@ -26,16 +29,18 @@ class TasksViewModel @Inject constructor(
     fun loadTasks() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            try {
-                val tasks = getTasksUseCase()
-                _uiState.update {
-                    it.copy(tasks = tasks, isLoading = false, error = null)
+
+            getTasksUseCase()
+                .onSuccess { tasks ->
+                    _uiState.update {
+                        it.copy(tasks = tasks, isLoading = false, error = null)
+                    }
                 }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = e.message ?: "Неизвестная ошибка")
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(isLoading = false, error = e.message ?: "Неизвестная ошибка")
+                    }
                 }
-            }
         }
     }
 
@@ -43,19 +48,22 @@ class TasksViewModel @Inject constructor(
         if (title.isBlank()) return
 
         viewModelScope.launch {
-            try {
-                addTaskUseCase(title, description)
-                loadTasks()
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(error = e.message ?: "Ошибка добавления")
+            _uiState.update { it.copy(isLoading = true, error = null) }
+
+            addTaskUseCase(title, description)
+                .onSuccess {
+                    loadTasks() // Перезагрузить список после добавления
                 }
-            }
+                .onFailure { e ->
+                    _uiState.update {
+                        it.copy(isLoading = false, error = e.message ?: "Ошибка добавления")
+                    }
+                }
         }
     }
 
     fun onTaskClick(task: Task) {
-        // Обработка клика
+        // Обработка клика по задаче
     }
 
     fun clearError() {
