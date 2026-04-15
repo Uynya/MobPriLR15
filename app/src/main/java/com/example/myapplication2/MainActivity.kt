@@ -33,7 +33,7 @@ import com.example.myapplication2.domain.model.Task
 import com.example.myapplication2.presentation.tasks.TasksUiState
 import com.example.myapplication2.presentation.viewmodel.TasksViewModel
 import dagger.hilt.android.AndroidEntryPoint
-
+//в проекте уже реализована MVVM архитектура
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
