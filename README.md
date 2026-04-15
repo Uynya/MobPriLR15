@@ -1,15 +1,18 @@
 -- Задание 1 (UiState) - выполнено:
   TasksUiState с полями: tasks, isLoading, error
+  
 -- Задание 2 (ViewModel) - выполнено:
   TasksViewModel с @HiltViewModel
   MutableStateFlow<TasksUiState>
   Методы: loadTasks(), addTask(), onTaskClick(), clearError()
   Использование UseCase через конструктор с Hilt
+  
 -- Задание 3 (Compose экран) - выполнено:
   Подписка на состояние через collectAsState()
   LaunchedEffect(Unit) для загрузки данных
   Отображение loading/error/контента
   Вызов методов ViewModel из UI
+  
 -- Задание 4 (DI и навигация) - выполнено:
   @HiltAndroidApp в Application
   DI модули для Repository, UseCase, Dispatchers
