@@ -7,11 +7,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class GetTasksUseCase @Inject constructor(
+open class GetTasksUseCase @Inject constructor(
     private val repository: TaskRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend operator fun invoke(): Result<List<Task>> = withContext(ioDispatcher) {
+    open suspend operator fun invoke(): Result<List<Task>> = withContext(ioDispatcher) {
         try {
             val tasks = repository.getAllTasks()
             Result.success(tasks)

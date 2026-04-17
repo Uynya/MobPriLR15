@@ -7,11 +7,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class AddTaskUseCase @Inject constructor(
+open class AddTaskUseCase @Inject constructor(
     private val repository: TaskRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
-    suspend operator fun invoke(title: String, description: String): Result<Unit> = withContext(ioDispatcher) {
+    open suspend operator fun invoke(title: String, description: String): Result<Unit> = withContext(ioDispatcher) {
         try {
             if (title.isBlank()) {
                 return@withContext Result.failure(IllegalArgumentException("Title cannot be blank"))
